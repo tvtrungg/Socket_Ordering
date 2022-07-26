@@ -86,6 +86,7 @@ def sendInformationToClient(date,request,client):
             client.sendall(bytes(sendInfor, "utf8"))
     fin.close()
 
+   
 #===== Hàm kiểm tra đăng nhập/đăng ký =======
 def checkLogin(conn,choose,username, bank_acc):
     file = open("user.txt", "a+")     #Mở file lưu trữ thông tin tài khoản, mật khẩu của client
