@@ -57,8 +57,7 @@ def client_logup(event=None):
                                 submittedUsername + '  & Your bank account: ' + submittedBank_account)
             homepage()
         elif msg == 'Account has been registered':
-            messagebox.showinfo(
-                'Message ', 'Account has been registered. Please try again :) ')
+            messagebox.showinfo('Message ', 'Account has been registered. Please try again :) ')
             on_closing()
 
 # ===== Xây dựng GUI cho HOMEPAGE =====
@@ -112,6 +111,62 @@ def homepage():
                 msg_list.insert(tkinter.END, line)
             except OSError:
                 break
+    def action():
+        top3 = tk.Toplevel()
+        top3.title("Order")
+        top3.geometry("500x500")
+        top3.configure(bg="bisque2")
+        label_title = tk.Label(top3, text="Order", font=LARGE_FONT,
+                                fg='#20639b', bg='bisque2')
+        label_title.pack()
+        label_wel = tk.Label(top3, text="Chào mừng bạn đến với Order",
+                            font=("verdana", 10), fg='#20639b', bg='bisque2')
+        label_wel.pack()
+        Label(top3, text="Loại đồ ăn:", fg='#20639b',
+                bg="bisque2", font='verdana 10 ').place(x=20, y=60) 
+        Label(top3, text="Tên món", fg='#20639b', bg="bisque2",
+                font='verdana 10 ').place(x=20, y=90)
+        #Hiển thị thông tin của món ăn được chọn ở phần msg_list
+        def show():
+            item = msg_list.get(msg_list.curselection())
+            item = item.split(" ")
+            Label(top3, text=item[0], fg='#20639b', bg="bisque2",
+                    font='verdana 10 ').place(x=120, y=60)
+            Label(top3, text=item[1], fg='#20639b', bg="bisque2",
+                    font='verdana 10 ').place(x=120, y=90)
+            Label(top3, text="Giá tiền:", fg='#20639b', bg="bisque2",
+                font='verdana 10 ').place(x=20, y=120)
+            Label(top3, text="Số lượng:", fg='#20639b', bg="bisque2",
+                    font='verdana 10 ').place(x=20, y=150)
+            Label(top3, text="Tổng tiền:", fg='#20639b', bg="bisque2",
+                    font='verdana 10 ').place(x=20, y=180)
+        #Gửi thông tin của món ăn được chọn ở phần msg_list
+        def send():
+            item = msg_list.get(msg_list.curselection())
+            item = item.split(" ")
+            client.send(item[0].encode(FORMAT))
+            client.send(item[1].encode(FORMAT))
+            client.send(item[2].encode(FORMAT))
+            client.send(item[3].encode(FORMAT))
+            client.send(item[4].encode(FORMAT))
+            client.send("3".encode(FORMAT))
+            msg = client.recv(1024).decode(FORMAT)
+            if msg == "Order successfully!":
+                messagebox.showinfo('Message ', 'Order successfully! ')
+            else:
+                messagebox.showinfo('Message ', 'Order failed. Please try again.')
+        Button(top3, text="Show", command=show, fg='#20639b', bg="bisque2",
+                font='verdana 10 ').place(x=20, y=120)
+        Button(top3, text="Send", command=send, fg='#20639b', bg="bisque2",
+                font='verdana 10 ').place(x=20, y=150)
+
+        
+        def on_closing3():
+            client.send("quit".encode(FORMAT))
+            client.close()
+            top3.destroy()
+        top3.protocol("WM_DELETE_WINDOW", on_closing3)
+        top3.mainloop()
 
     receive_thread = Thread(target=receive)
     receive_thread.start()
@@ -188,7 +243,7 @@ def homepage():
     
     amount_food1 = tk.Entry(msg_list1, width=5, bg='#fff')
     amount_food1.place(x=81, y= 180)
-    button1 = tk.Button(msg_list1, text="ORDER", width = 10,
+    button1 = tk.Button(msg_list1, text="ORDER", width = 10, command=action,
                         bg="#20639b", fg='floral white', height=1)
     button1.place(x=52, y=220)
 
@@ -342,6 +397,8 @@ def homepage():
         top2.destroy()
     top2.protocol("WM_DELETE_WINDOW", on_closing2)
     top2.mainloop()
+    
+    
 
 
 # ===== Khi người dùng nhấn nút [X] thì đóng cửa sổ ngắt kết nối đến server =====
