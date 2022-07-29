@@ -89,14 +89,12 @@ def sendInformationToClient(date,request,client):
    
 #===== Hàm kiểm tra đăng nhập/đăng ký =======
 def checkLogin(conn,choose,username, bank_acc):
-    file = open("user.txt", "a+")     #Mở file lưu trữ thông tin tài khoản, mật khẩu của client
-    file.seek(0)
+    file = open("user.json", "r")     #Mở file lưu trữ thông tin tài khoản, mật khẩu của client
+    data = json.load(file)      #Đọc file json
     if choose == "1":                 #Khi người dùng bấm vào Button Sign in thì bên server sẽ kiểm tra đăng nhập
         tmp = TRUE
-        lines = file.readlines()
-        for line in lines:            #Duyệt file user.txt theo từng dòng
-            usFile = line.strip("\n").split(",")    #Mỗi dòng trong file sẽ chứa username và bank account ngăn cách bởi dấu ","
-            if username == usFile[0] and bank_acc == usFile[1]: #Kiểm tra xem tài khoản và mật khẩu có trùng khớp không
+        for i in range(len(data)):            #Duyệt file user.txt theo từng dòng
+            if username == data[i]["name"] and bank_acc == data[i]["bank_acc"]: #Kiểm tra xem tài khoản và mật khẩu có trùng khớp không
                 message = "Sign in successfully"
                 print(username, message)
                 conn.send(message.encode(FORMAT)) 
@@ -109,22 +107,25 @@ def checkLogin(conn,choose,username, bank_acc):
 
     elif choose == "2":                #Khi người dùng bấm vào Button Sign up thì bên server sẽ kiểm tra đăng ký tài khoản
         tmp = TRUE      
-        lines = file.readlines()
-        for line in lines:             #Cách kiểm tra data cũng giống như trên
-            usFile = line.strip("\n").split(",")
-            if username == usFile[0]:
+        # lines = file.readlines()
+        for i in range(len(data)):             #Cách kiểm tra data cũng giống như trên
+            # usFile = line.strip("\n").split(",")
+            if username == data[i]["name"]:
                 message = "Account has been registered"
                 print(username, message)
                 conn.sendall(bytes(message, FORMAT))
                 tmp = FALSE
         if tmp == TRUE:
-            file.write('\n')
-            file.write(username + "," + bank_acc )
-            message = "Sign up successfully!"
-            print(username, message)
-            conn.sendall(bytes(message, FORMAT)) 
+            #ghi thông tin tài khoản vào file user.json
+            data.append({"name": username, "bank_acc": bank_acc})
+            with open("user.json", "w") as temp:        #Mở file json và lưu data vào
+                json.dump(data, temp, indent=4)
+                message = "Sign up successfully"
+                print(username, message)
+                conn.sendall(bytes(message, FORMAT))
+             
     file.close()
-
+        
 #=====Khai báo HOST và PORT cho server=====
 HOST = "127.0.0.1" 
 SERVER_PORT = 65432       

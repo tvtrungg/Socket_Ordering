@@ -1,0 +1,14 @@
+[
+    {
+        "name": "a",
+        "bank_acc": "123"
+    },
+    {
+        "name": "b",
+        "bank_acc": "456"
+    },
+    {
+        "name": "c",
+        "bank_acc": "789"
+    }
+]
