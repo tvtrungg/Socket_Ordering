@@ -133,9 +133,9 @@ def homepage():
     # Kích thước phần khung hình
     canvas = Canvas(msg_list, width=178, height=90)
     canvas.pack()
-    pilImage = Image.open("./logo.png")
+    pilImage = Image.open("./image/drink/cafe.png")
     # Resize của hình món ăn
-    pilImage = pilImage.resize((81, 80), Image.ANTIALIAS) # độ rộng của phần khung hình
+    pilImage = pilImage.resize((81, 80), Image.Resampling.LANCZOS) # độ rộng của phần khung hình
     image = ImageTk.PhotoImage(pilImage)
     imagesprite = canvas.create_image(95, 45, image=image)  # tọa độ của hình món ăn
     canvas.place(x=0, y=0)
@@ -165,8 +165,8 @@ def homepage():
     #========== Món 2  ===========
     canvas1 = Canvas(msg_list1, width=176, height=90)
     canvas1.pack()
-    pilImage1 = Image.open("./logo.png")
-    pilImage1 = pilImage1.resize((81, 80), Image.ANTIALIAS)  # Resize
+    pilImage1 = Image.open("./image/drink/cafeden.png")
+    pilImage1 = pilImage1.resize((81, 80), Image.Resampling.LANCZOS)  # Resize
     image1 = ImageTk.PhotoImage(pilImage1)
     imagesprite1 = canvas1.create_image(95, 45, image=image1)
     canvas1.place(x=0, y=0)
@@ -195,8 +195,8 @@ def homepage():
     # Món 3
     canvas2 = Canvas(msg_list2, width=176, height=90)
     canvas2.pack()
-    pilImage2 = Image.open("./logo.png")
-    pilImage2 = pilImage1.resize((81, 80), Image.ANTIALIAS)  # Resize
+    pilImage2 = Image.open("./image/drink/cafesua.png")
+    pilImage2 = pilImage1.resize((81, 80), Image.Resampling.LANCZOS)  # Resize
     image2 = ImageTk.PhotoImage(pilImage2)
     imagesprite2 = canvas2.create_image(95, 45, image=image2)
     canvas2.place(x=0, y=0)
@@ -227,8 +227,8 @@ def homepage():
     # Món 4
     canvas3 = Canvas(msg_list3, width=176, height=90)
     canvas3.pack()
-    pilImage3 = Image.open("./logo.png")
-    pilImage3 = pilImage3.resize((81, 80), Image.ANTIALIAS)  # Resize
+    pilImage3 = Image.open("./image/drink/capuchino.png")
+    pilImage3 = pilImage3.resize((81, 80), Image.Resampling.LANCZOS)  # Resize
     image3 = ImageTk.PhotoImage(pilImage3)
     imagesprite3 = canvas3.create_image(95, 45, image=image3)
     canvas3.place(x=0, y=0)
@@ -259,8 +259,8 @@ def homepage():
     # Món 5
     canvas4 = Canvas(msg_list4, width=176, height=90)
     canvas4.pack()
-    pilImage4 = Image.open("./logo.png")
-    pilImage4 = pilImage4.resize((81, 80), Image.ANTIALIAS)  # Resize
+    pilImage4 = Image.open("./image/drink/coca.png")
+    pilImage4 = pilImage4.resize((81, 80), Image.Resampling.LANCZOS)  # Resize
     image4 = ImageTk.PhotoImage(pilImage4)
     imagesprite4 = canvas4.create_image(95, 45, image=image4)
     canvas4.place(x=0, y=0)
@@ -291,8 +291,8 @@ def homepage():
     # Món 6
     canvas5 = Canvas(msg_list5, width=176, height=90)
     canvas5.pack()
-    pilImage5 = Image.open("./logo.png")
-    pilImage5 = pilImage5.resize((81, 80), Image.ANTIALIAS)  # Resize
+    pilImage5 = Image.open("./image/drink/pepsi.png")
+    pilImage5 = pilImage5.resize((81, 80), Image.Resampling.LANCZOS)  # Resize
     image5 = ImageTk.PhotoImage(pilImage5)
     imagesprite5 = canvas5.create_image(95, 45, image=image5)
     canvas5.place(x=0, y=0)
