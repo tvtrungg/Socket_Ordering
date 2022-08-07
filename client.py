@@ -1,462 +1,326 @@
-import socket
-from tkinter import *
-from threading import Thread
+
+from re import L        #Giúp làm việc với biểu thức chính quy 
+#(vd: Tìm kiếm chuỗi,...findall(),search(),split(), sub(),...)
+import socket           # Thư viện lập trình Socket
+from tkinter import *       # Tạo GUI cho chương trình
 import tkinter
+import time       # Thư viện thời gian
+from tkinter import messagebox  # Hiển thị thông báo
+from datetime import datetime    # Hiển thị thời gian
 import tkinter as tk
-import time
-from tkinter import messagebox
-from datetime import datetime
-from PIL import Image, ImageTk
 
-
-
+#============== Các biến khởi tạo ban đầu================
+FORMAT = 'utf8'
 now = datetime.now()
 DATE = now.strftime("%y_%m_%d")
-LARGE_FONT = ("verdana", 13, "bold")
+LARGE_FONT = ("verdana", 13,"bold")
 
-# ===== Bấm Sign in button thì hàm này chạy =====
-
-
-def client_login(event=None):
-    # Cho phép người dùng nhập username va bank_acc
-    submittedUsername = username.get()
-    submittedBank_account = bank_acc.get()
-    if submittedUsername == "" or submittedBank_account == "":
-        messagebox.showinfo('Message ', 'Empty. Please try again.')
-
-    else:
-        client.send(submittedUsername.encode(FORMAT))
-        time.sleep(0.01)
-
-        client.send(submittedBank_account.encode(FORMAT))
-        time.sleep(0.01)
-
-        client.send("1".encode(FORMAT))
-        msg = client.recv(1024).decode(FORMAT)
-        if msg == "Sign in successfully":
-            messagebox.showinfo('Message', msg)
-            homepage()
-        else:
-            messagebox.showinfo('Message', 'Sign in failed. Please try again.')
+table_number = 0
+first_time = True
+top_connect = tk.Tk()
+order_list = []
+#==============================
 
 
-# ===== Bấm Sign up button thì hàm này chạy =====
-def client_logup(event=None):
-    submittedUsername = username.get()
-    submittedBank_account = bank_acc.get()
-    if submittedUsername == "" or submittedBank_account == "":
-        messagebox.showinfo('Message ', 'Empty. Please try again.')
-    else:
-        client.send(submittedUsername.encode(FORMAT))
-        time.sleep(0.01)
-        client.send(submittedBank_account.encode(FORMAT))
-        time.sleep(0.01)
-        client.send("2".encode(FORMAT))
-        msg = client.recv(1024).decode(FORMAT)
-        if msg == "Sign up successfully!":
-            messagebox.showinfo('Sign up successfully!', 'Your username: ' +
-                                submittedUsername + '  & Your bank account: ' + submittedBank_account)
-            homepage()
-        elif msg == 'Account has been registered':
-            messagebox.showinfo('Message ', 'Account has been registered. Please try again :) ')
+#===== Xây dựng GUI cho Table Order =====
+def screen_connect():
+    top_connect.title("Table Order")
+    top_connect.geometry("250x200")
+    top_connect.configure(bg="bisque2")
+
+    Label(top_connect, text = "Table number",fg='#20639b',bg="bisque2",font='verdana 14 bold').place(relx = 0.18, rely = 0.1)
+
+    input_table_number = tkinter.StringVar()
+    e1 = Entry(top_connect, width = 15, textvariable = input_table_number).place(x = 70, y = 80)
+
+    #===== Bấm Order thì hàm này chạy =====
+    def client_connect(event = None):     
+        global table_number     
+        table_number = input_table_number.get()        #Cho phép người dùng nhập
+        # nếu giá trị nhập vào khác số nguyên dương thì thông báo lỗi (sử dụng isdigit() trong string)
+        if table_number.isdigit() == False:
+            messagebox.showinfo("Error", "Vui lòng nhập số bàn")
+            return
+        
+        if table_number == "": 
+            messagebox.showinfo('Message ','Bạn chưa nhập số bàn')
             on_closing()
+        else:
+            client.send(table_number.encode(FORMAT))    #Gửi cho server biết table_number
+            time.sleep(0.01)
+            msg = client.recv(1024).decode(FORMAT)  #Nhận kiểm tra số bàn từ server
+            global first_time
+            if msg == "first_time":
+                messagebox.showinfo('Message ','Connect first time')
 
-# ===== Xây dựng GUI cho HOMEPAGE =====
-
-
-def homepage():
-    top.destroy()  # xóa cái box loggin
-    top2 = Tk()  # tạo box mới (homepage)
-    top2.title("Homepage")
-    top2.state('zoomed')
-    top2.resizable(0, 0)
-    top2.configure(bg="bisque2")
+            elif msg == "not_first_time": 
+                first_time = False
+                messagebox.showinfo('Message ','Connect')
+            screen_homepage()
     
-    
-
-    # ===== Luồng Receive =====
-    def receive():
-        while True:
-            try:
-                msg = client.recv(4080).decode(FORMAT)
-                if msg == 'quit':
-                    messagebox.showinfo('Message ', 'Sever has stopped ')
-                    client.close()
-                    top2.destroy()
-                line = "-----------------------------"
-                mess = msg.split("\n")
-                msg_list.insert(tkinter.END, mess[0])
-                msg_list.insert(tkinter.END, mess[1])
-                msg_list.insert(tkinter.END, mess[2])
-                msg_list.insert(tkinter.END, mess[3])
-                msg_list.insert(tkinter.END, mess[4])
-                msg_list.insert(tkinter.END, line)
-            except OSError:
-                break
-
-    receive_thread = Thread(target=receive)
-    receive_thread.start()
-
-        # size của phần hiển thị kết quả
-    msg_list = tkinter.Listbox(top2, width=50)
-    msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH, expand=True)
-    msg_total = tkinter.Listbox(top2, width=10)
-    msg_total.pack(side=tkinter.RIGHT, fill=tkinter.BOTH, expand=True)
-
-    label_title = tk.Label(msg_list, text="HOME", font=LARGE_FONT, bg="#fff").place(relx=0.5, rely=0)
-    label_wel = tk.Label(msg_list, text="Welcome to Food Ordering System Dashboard", font='verdana 10', bg="#fff").place(relx=0.355, rely=0.03)
-    label_title = tk.Label(msg_total, text="Thanh toán", font=LARGE_FONT, bg="#fff").place(relx=0.5, rely=0)
-    
-    frame = Frame(msg_list, bg="bisque2")
-    frame.place(relx=0, rely=0.1, relwidth=1, relheight=0.89)
-
-    my_canvas = Canvas(frame, bg="bisque2")
-    my_canvas.pack(side=LEFT, fill=BOTH, expand=1)
-    # Create scrollbar for msg_list
-    scrollbar = Scrollbar(frame, orient=VERTICAL, command=my_canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
-    # Configure canvas
-    my_canvas.configure(yscrollcommand=scrollbar.set)
-    my_canvas.bind('<Configure>', lambda e: my_canvas.configure(scrollregion = my_canvas.bbox("all")))
-    # Create another frame inside the canvas
-    second_frame = Frame(my_canvas, bg="bisque2")
-    # Add that new frame to a window in the canvas
-    my_canvas.create_window((0,0), window=second_frame, anchor="nw")
-    
-    # ===== Xây dựng GUI cho thanh toán =====
-    image_button1 = PhotoImage(file='./image/food/bamithit1.png')
-    button1 = tk.Button(second_frame, image=image_button1, bg="#20639b", width= 190,
-                       fg='floral white', height=220)
-    button1.grid(row=1, column=0, padx=30, pady=17)
-
-    image_button2 = PhotoImage(file='./image/food/comsuon.png')
-    button2 = tk.Button(second_frame,image=image_button2, bg="#20639b", width= 190,
-                          fg='floral white', height=220)  
-    button2.grid(row=1, column=1, padx=30, pady=17)
-
-    image_button3 = PhotoImage(file='./image/food/bamithit1.png')
-    button3 = tk.Button(second_frame,image=image_button3, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button3.grid(row=1, column=2, padx=30, pady=17)
-
-    image_button4 = PhotoImage(file='./image/food/comsuon.png')
-    button4 = tk.Button(second_frame,image=image_button4, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button4.grid(row=2, column=0, padx=30, pady=17)
-
-    image_button5 = PhotoImage(file='./image/food/bamithit1.png')
-    button5 = tk.Button(second_frame, image=image_button5, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button5.grid(row=2, column=1, padx=30, pady=17)
-
-    image_button6 = PhotoImage(file='./image/food/comsuon.png')
-    button6 = tk.Button(second_frame, image=image_button6, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button6.grid(row=2, column=2, padx=30, pady=17)
-
-    image_button7 = PhotoImage(file='./image/drink/cafe.png')
-    button7 = tk.Button(second_frame, image=image_button7, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button7.grid(row=3, column=0, padx=30, pady=17)
-
-    image_button8 = PhotoImage(file='./image/drink/capuchino.png')
-    button8 = tk.Button(second_frame, image=image_button8, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button8.grid(row=3, column=1, padx=30, pady=17)
-
-    image_button9 = PhotoImage(file='./image/drink/coca.png')
-    button9 = tk.Button(second_frame, image=image_button9, bg="#20639b", width= 190,       
-                            fg='floral white', height=220)
-    button9.grid(row=3, column=2, padx=30, pady=17)
-
-    image_button10 = PhotoImage(file='./image/drink/pepsi.png')
-    button10 = tk.Button(second_frame, image=image_button10, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button10.grid(row=4, column=0, padx=30, pady=17)
-
-    image_button11 = PhotoImage(file='./image/drink/nuoc.png')
-    button11 = tk.Button(second_frame, image=image_button11, bg="#20639b", width= 190,       
-                            fg='floral white', height=220)
-    button11.grid(row=4, column=1, padx=30, pady=17)
-
-    image_button12 = PhotoImage(file='./image/drink/cafeden.png')
-    button12 = tk.Button(second_frame, image=image_button12, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button12.grid(row=4, column=2, padx=30, pady=17)
-
-    image_button13 = PhotoImage(file='./image/drink/cafesua.png')
-    button13 = tk.Button(second_frame, image=image_button13, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button13.grid(row=5, column=0, padx=30, pady=17)
-
-    image_button14 = PhotoImage(file='./image/drink/cafe.png')
-    button14 = tk.Button(second_frame, image=image_button14, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button14.grid(row=5, column=1, padx=30, pady=17)
-
-    image_button15 = PhotoImage(file='./image/drink/coca.png')
-    button15 = tk.Button(second_frame, image=image_button15, bg="#20639b", width= 190,
-                            fg='floral white', height=220)
-    button15.grid(row=5, column=2, padx=30, pady=17)
-
-
-
-
-    # Các hình món ăn trong list
-    # Món 1
-    # Kích thước phần khung hình
-    # canvas = Canvas(msg_list, width=178, height=90)
-    # canvas.pack()
-    # pilImage = Image.open("./image/drink/cafe.png")
-    # # Resize của hình món ăn
-    # pilImage = pilImage.resize((81, 80)) # độ rộng của phần khung hình
-    # image = ImageTk.PhotoImage(pilImage)
-    # imagesprite = canvas.create_image(95, 45, image=image)  # tọa độ của hình món ăn
-    # canvas.place(x=0, y=0)
-
-    # label_name = tk.Label(msg_list, text="Mì Trộn",font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # label_name.place(x=60, y=95)
-
-    # label_price = tk.Label(msg_list, text="Giá: 30.000đ", font=("Arial bold", 11), fg='#20639b', bg='#fff')
-    # label_price.place(x=10, y=130)
-
-    # label_note = tk.Label(msg_list, text="Note:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_note.place(x=10, y=155)
-    
-    # note_food = tk.Entry(msg_list, width=20, bg='#fff')
-    # note_food.place(x=53, y= 157)
-
-    # label_amount = tk.Label(msg_list, text="Số lượng:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_amount.place(x=10, y=177)
-    
-    # amount_food = tk.Entry(msg_list, width=5, bg='#fff')
-    # amount_food.place(x=81, y= 180)
-
-    # button = tk.Button(msg_list, text="ORDER", bg="#20639b", width= 10,
-    #                    fg='floral white', height=1)
-    # button.place(x=52, y=220)
-
-    # #========== Món 2  ===========
-    # canvas1 = Canvas(msg_list, width=176, height=90)
-    # canvas1.pack()
-    # pilImage1 = Image.open("./image/drink/cafeden.png")
-    # pilImage1 = pilImage1.resize((81, 80))  # Resize
-    # image1 = ImageTk.PhotoImage(pilImage1)
-    # imagesprite1 = canvas1.create_image(95, 45, image=image1)
-    # canvas1.place(x=220, y=0)
-
-    # label_name1 = tk.Label(msg_list, text="Cơm chiên",font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # label_name1.place(x=260, y=95)
-
-    # label_price1 = tk.Label(msg_list, text="Giá: 35.000đ", font=("Arial bold", 11), fg='#20639b', bg='#fff')
-    # label_price1.place(x=220, y=130)
-
-    # label_note1 = tk.Label(msg_list, text="Note:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_note1.place(x=220, y=155)
-    
-    # note_food1 = tk.Entry(msg_list, width=20, bg='#fff')
-    # note_food1.place(x=263, y= 157)
-
-    # label_amount1 = tk.Label(msg_list, text="Số lượng:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_amount1.place(x=220, y=177)
-    
-    # amount_food1 = tk.Entry(msg_list, width=5, bg='#fff')
-    # amount_food1.place(x=291, y= 180)
-    
-    # button1 = tk.Button(msg_list, text="ORDER", width = 10,
-    #                     bg="#20639b", fg='floral white', height=1)
-    # button1.place(x=262, y=220)
-
-    # # Món 3
-    # canvas2 = Canvas(msg_list, width=176, height=90)
-    # canvas2.pack()
-    # pilImage2 = Image.open("./image/drink/cafesua.png")
-    # pilImage2 = pilImage1.resize((81, 80))  # Resize
-    # image2 = ImageTk.PhotoImage(pilImage2)
-    # imagesprite2 = canvas2.create_image(95, 45, image=image2)
-    # canvas2.place(x=440, y=0)
-
-    # label_name2 = tk.Label(msg_list, text="Canh gà",
-    #                        font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # label_name2.place(x=490, y=95)
-
-    # label_price2 = tk.Label(msg_list, text="Giá: 40.000đ", font=("Arial bold", 11), fg='#20639b', bg='#fff')
-    # label_price2.place(x=440, y=130)
-
-    # label_note2 = tk.Label(msg_list, text="Note:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_note2.place(x=440, y=155)
-    
-    # note_food2 = tk.Entry(msg_list, width=20, bg='#fff')
-    # note_food2.place(x=483, y= 157)
-
-    # label_amount2 = tk.Label(msg_list, text="Số lượng:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_amount2.place(x=440, y=177)
-    
-    # amount_food2 = tk.Entry(msg_list, width=5, bg='#fff')
-    # amount_food2.place(x=511, y= 180)
-
-    # button2 = tk.Button(msg_list, text="ORDER", width= 10,
-    #                     bg="#20639b", fg='floral white', height=1)
-    # button2.place(x=482, y=220)
-
-    # # # Món 4
-    # canvas3 = Canvas(msg_list, width=176, height=90)
-    # canvas3.pack()
-    # pilImage3 = Image.open("./image/drink/capuchino.png")
-    # pilImage3 = pilImage3.resize((81, 80))  # Resize
-    # image3 = ImageTk.PhotoImage(pilImage3)
-    # imagesprite3 = canvas3.create_image(95, 45, image=image3)
-    # canvas3.place(x=660, y=0)
-
-    # label_name3 = tk.Label(msg_list, text="Khoai tây lắc",
-    #                        font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # label_name3.place(x=690, y=95)
-
-    # label_price3 = tk.Label(msg_list, text="Giá: 25.000đ", font=("Arial bold", 11), fg='#20639b', bg='#fff')
-    # label_price3.place(x=660, y=130)
-
-    # label_note3 = tk.Label(msg_list, text="Note:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_note3.place(x=660, y=155)
-    
-    # note_food3 = tk.Entry(msg_list, width=20, bg='#fff')
-    # note_food3.place(x=703, y= 157)
-
-    # label_amount3 = tk.Label(msg_list, text="Số lượng:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_amount3.place(x=660, y=177)
-    
-    # amount_food3 = tk.Entry(msg_list, width=5, bg='#fff')
-    # amount_food3.place(x=731, y= 180)
-
-    # button3 = tk.Button(msg_list, text="ORDER", width= 10,
-    #                     bg="#20639b", fg='floral white', height=1)
-    # button3.place(x=702, y=220)
-
-    # # # Món 5
-    # canvas4 = Canvas(msg_list, width=176, height=90)
-    # canvas4.pack()
-    # pilImage4 = Image.open("./image/drink/coca.png")
-    # pilImage4 = pilImage4.resize((81, 80))  # Resize
-    # image4 = ImageTk.PhotoImage(pilImage4)
-    # imagesprite4 = canvas4.create_image(95, 45, image=image4)
-    # canvas4.place(x=880, y=0)
-
-    # label_name4 = tk.Label(msg_list, text="Gà rán",
-    #                        font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # label_name4.place(x=930, y=95)
-
-    # label_price4 = tk.Label(msg_list,text="Giá: 30.000đ", font=("Arial bold", 11), fg='#20639b', bg='#fff')
-    # label_price4.place(x=880, y=130)
-
-    # label_note4 = tk.Label(msg_list, text="Note:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_note4.place(x=880, y=155)
-    
-    # note_food4 = tk.Entry(msg_list, width=20, bg='#fff')
-    # note_food4.place(x=923, y= 157)
-
-    # label_amount4 = tk.Label(msg_list, text="Số lượng:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_amount4.place(x=880, y=177)
-    
-    # amount_food4 = tk.Entry(msg_list, width=5, bg='#fff')
-    # amount_food4.place(x=951, y= 180)
-
-    # button4 = tk.Button(msg_list, text="ORDER", width= 10,
-    #                     bg="#20639b", fg='floral white', height=1)
-    # button4.place(x=922, y=220)
-
-    # # # Món 6
-    # canvas5 = Canvas(msg_list, width=176, height=90)
-    # canvas5.pack()
-    # pilImage5 = Image.open("./image/drink/pepsi.png")
-    # pilImage5 = pilImage5.resize((81, 80))  # Resize
-    # image5 = ImageTk.PhotoImage(pilImage5)
-    # imagesprite5 = canvas5.create_image(95, 45, image=image5)
-    # canvas5.place(x=1100, y=0)
-
-    # label_name5 = tk.Label(msg_list, text="Phô mai que",
-    #                        font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # label_name5.place(x=1120, y=95)
-
-    # label_price5 = tk.Label(msg_list, text="Giá: 15.000đ", font=("Arial bold", 11), fg='#20639b', bg='#fff')
-    # label_price5.place(x=1100, y=130)
-
-    # label_note5 = tk.Label(msg_list, text="Note:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_note5.place(x=1100, y=155)
-    
-    # note_food5 = tk.Entry(msg_list, width=20, bg='#fff')
-    # note_food5.place(x=1143, y= 157)
-
-    # label_amount5 = tk.Label(msg_list, text="Số lượng:", font=("verdana", 10), fg='#20639b', bg='#fff')
-    # label_amount5.place(x=1100, y=177)
-    
-    # amount_food5 = tk.Entry(msg_list, width=5, bg='#fff')
-    # amount_food5.place(x=1171, y= 180)
-
-    # button5 = tk.Button(msg_list, text="ORDER", width= 10,
-    #                     bg="#20639b", fg='floral white', height=1)
-    # button5.place(x=1142, y=220)
-
-    # total_name = tk.Label(msg_total, text="Thanh Toán",font=LARGE_FONT, fg='#20639b', bg='#fff')
-    # total_name.place(x=420, y=0)
-
-    
-    # msg_list.place(x=0, y=120)
-    # msg_total.place(x=300, y=300)
-    # msg_list1.place(x=240, y=120)
-    # msg_list2.place(x=460, y=120)
-    # msg_list3.place(x=680, y=120)
-    # msg_list4.place(x=900, y=120)
-    # msg_list5.place(x=1120, y=120)
-
-
-
-    def on_closing2():
-        client.send("quit".encode(FORMAT))
+    #===== Khi người dùng nhấn nút [X] thì đóng cửa sổ ngắt kết nối đến server =====
+    def on_closing():
+        client.send("quit".encode(FORMAT))      #Gửi lện server bị thông báo người dùng đóng cửa sổ ngắt kết nối đến server
         client.close()
-        top2.destroy()
-    top2.protocol("WM_DELETE_WINDOW", on_closing2)
-    top2.mainloop()
+        top_connect.destroy()
+
+    button_login = Button (top_connect,text="Table Order",bg="#20639b",fg='floral white',height= "1",width="15", activeforeground = "black", activebackground = "blue", command= client_connect)
+    button_login.place(x=60,y=120)
+
+    # top_connect.protocol("WM_DELETE_WINDOW", on_closing)
+    top_connect.mainloop()
+
+
+#===== Xây dựng GUI cho HOMEPAGE =====
+def screen_homepage():
+    def screen_order_food():
+        top_homepage.destroy()       #xóa cái box screen_homepage
+        msg = "menu"
+        client.send(msg.encode(FORMAT))
+        msg = client.recv(1024).decode(FORMAT)
+        count = int(msg)
+        global food_name
+        global food_price
+        global food_note
+        global food_image
+        food_name = []
+        food_price = []
+        food_note = []
+        food_image = []
+        for i in range(count):
+            msg = client.recv(1024).decode(FORMAT)
+            food_name.append(msg)
+            msg = client.recv(1024).decode(FORMAT)
+            food_price.append(msg)
+            msg = client.recv(1024).decode(FORMAT)
+            food_note.append(msg)
+            msg = client.recv(1024).decode(FORMAT)
+            food_image.append(msg)
+
+        entry = {}
+        label = {}
+        
+        top_order_food = tk.Tk()
+        top_order_food.title("Menu")
+        top_order_food.state('zoomed')
+        
+        Label(top_order_food, text = "STT",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=0, padx = 30, pady = 30)
+        Label(top_order_food, text = "TÊN MÓN",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=1, padx = 30, pady = 30)
+        Label(top_order_food, text = "GIÁ TIỀN",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=2, padx = 30, pady = 30)
+        Label(top_order_food, text = "NOTE",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=3, padx = 85, pady = 30)
+        Label(top_order_food, text = "SỐ LƯỢNG",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=4, padx = 40, pady = 30)
+        Label(top_order_food, text = "HÌNH ẢNH",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=5, padx = 70, pady = 30)
+
+        
+        frame = Frame(top_order_food)
+        frame.place(relx=0, rely=0.1, relwidth=0.9, relheight=0.7)
+        canvas = Canvas(frame)
+        canvas.pack(side="left", fill="both", expand=1)
+
+        scrollbar = Scrollbar(frame, orient="vertical", command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.bind('<Configure>', lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")))
+
+        second_frame = Frame(frame)
+        canvas.create_window((0, 0), window=second_frame, anchor="nw")
+        x = 1
+        y = 1
+        z = 1
+        t = 1
+        g = 1
+        stt = 1
+        while (stt <= len(food_name)):
+            lbName = Label(second_frame, text=stt,font='verdana 12')
+            lbName.grid(row=g, column=0, padx = 30)
+            stt += 1
+            g += 1
+
+        for Name in food_name:
+            e = Entry(second_frame,font='verdana 14',width=10)
+            e.grid(row=x, column=4, padx = 30)
+            entry[Name] = e
+
+            lbName = Label(second_frame, text=Name,font='verdana 12')
+            lbName.grid(row=x, column=1, padx = 30)
+            label[Name] = lbName
+            x += 1
+
+        for Price in food_price:
+            lbPrice = Label(second_frame, text=Price,font='verdana 12')
+            lbPrice.grid(row=y, column=2, padx = 50)
+            label[Price] = lbPrice
+            y += 1
+
+        for Note in food_note:
+            lbNote = Label(second_frame, text=Note,font='verdana 12')
+            lbNote.grid(row=z, column=3, padx = 30)
+            label[Note] = lbNote
+            z += 1
+
+        for Img in food_image:
+            photo = PhotoImage(file=Img)
+            lbImage = Label(second_frame, image = photo, text=Img)
+            lbImage.image = photo
+            lbImage.grid(row=t, column=5, padx = 80)
+            t += 1
+            
+        def print_all_entries():
+            #================== HÀM HỦY ĐƠN HÀNG ==================
+            def cancel_order():
+                pay.destroy()
+                order_list.clear()
+            #================== THANH TOÁN BẰNG TIỀN MẶT ===========================
+            def pay_cash():
+                Label(pay, text="Payment: Cash",fg='#20639b',bg="bisque2",font='verdana 15 bold ').place(relx = 0.1, rely = 0.57)
+                Label(pay, text="Nhập số tiền hiện có: ",fg='#20639b',bg="bisque2",font='verdana 11 bold ',width=30).place(relx = 0.06, rely = 0.63)
+                cash = Entry(pay)
+                cash.place(relx = 0.15, rely = 0.7)
+                #================== hàm lấy số tiền hiện có ==================
+                def get_money():
+                    temp = cash.get()
+                    # nếu giá trị nhập vào khác số nguyên dương thì thông báo lỗi (sử dụng isdigit() trong string)
+                    if temp.isdigit() == False:
+                        messagebox.showerror("Error", "Vui lòng nhập số tiền [0-9]")
+                    else:
+                        if temp == "":
+                            messagebox.showinfo('Message ','Bạn chưa nhập gì !!!Vui lòng nhập số tiền hiện có')
+                        else:
+                            current_money = int(temp)
+                            if current_money < int(total):
+                                messagebox.showinfo('Message ','Số tiền không đủ ')
+                            else:
+                                msg = "order"
+                                client.send(msg.encode(FORMAT))
+                                for i in range(len(order_list)):
+                                    client.send(order_list[i].encode(FORMAT))
+                                    time.sleep(0.01)
+
+                                remain = int(current_money) - int(total)
+                                Label(pay, text="Tiền dư: " + str(format(remain, ',d')) + " VNĐ",fg='#20639b',bg="bisque2",font='verdana 13 bold ').place(relx = 0.4, rely = 0.78)
+                                messagebox.showinfo('Message ','Thanh toán thành công')
+                                pay.destroy()
+                            
+                Button(pay, text="Thanh toán", command=get_money).place(relx = 0.38, rely = 0.698)
+
+            #================== THANH TOÁN BẰNG THẺ ==================
+            def pay_card():
+                Label(pay, text="Payment: Card",fg='#20639b',bg="bisque2",font='verdana 15 bold ').place(relx = 0.1, rely = 0.57)
+                Label(pay, text="Nhập số thẻ: ",fg='#20639b',bg="bisque2",font='verdana 11 bold ',width=30).place(relx = 0.06, rely = 0.63)
+                card = Entry(pay)
+                card.place(relx = 0.15, rely = 0.7)
+                #================== hàm lấy số thẻ  ==================
+                def get_card():
+                    temp = card.get()   # lấy số thẻ từ Entry
+                    # nếu giá trị nhập vào khác số nguyên dương thì thông báo lỗi (sử dụng isdigit() trong string)
+                    if temp.isdigit() == False:
+                        messagebox.showinfo('Error ','Vui lòng nhập số thẻ [0-9]')
+                    else:
+                        if temp == "":
+                            messagebox.showinfo('Message ','Bạn chưa nhập gì !!!Vui lòng nhập số thẻ 10 số')
+                        else:
+                            length = str(temp)  # kiểm tra số thẻ nhập = 10 hay không
+                            if len(length) != 10 :
+                                messagebox.showinfo('Message ','Vui lòng nhập số thẻ 10 số')
+                            else:
+                                msg = "order"
+                                client.send(msg.encode(FORMAT))
+                                for i in range(len(order_list)):
+                                    client.send(order_list[i].encode(FORMAT))
+                                    time.sleep(0.01)
+                                messagebox.showinfo('Message ','Thanh toán thành công')
+                                pay.destroy()
+
+                Button(pay, text="Thanh toán", command=get_card).place(relx = 0.38, rely = 0.698)
+            
+            #================== CỬA SỔ CHỌN MÓN ĂN ==================
+            for name in food_name:
+                 # nếu giá trị '' thì gán lại thành 0
+                if entry[name].get() == '':
+                    entry[name].insert(0, '0')
+                # nếu giá trị nhập vào khác số nguyên dương thì thông báo lỗi (sử dụng isdigit() trong string)
+                if entry[name].get().isdigit() == False:
+                    messagebox.showinfo('Message ','Vui lòng nhập số lượng món ăn. Xin cảm ơn!')
+                    order_list.clear()
+                    return
+                else:
+                    order_list.append(entry[name].get())     # lưu số lượng món ăn vào order_list
+            # print (order_list)
+
+            # ================== TÍNH TỔNG TIỀN ==================
+            total = 0
+            for i in range(len(order_list)):
+                total += int(order_list[i]) * int(food_price[i]) # tính tổng tiền của món ăn
+            if total == 0:
+                messagebox.showinfo('Message ','Bạn chưa chọn món ăn nào. Vui lòng chọn món. Xin cảm ơn!')
+                total = 0
+                order_list.clear()
+                return
+            # print ('Tổng tiền:', total)
+
+            #================== TẠO CỬA SỔ THANH TOÁN ==================
+            top_order_food.destroy()
+            pay = tk.Tk()
+            pay.title("Payment")
+            pay.geometry("600x600")
+            pay.configure(bg="bisque2")
+            Label(pay, text="Thanh toán",fg='#20639b',bg="bisque2",font='verdana 20 bold ').place(relx = 0.35, y = 15)
+            #================== tạo frame hiển thị món đã đặt và scrollbar ==================
+            frame = Frame(pay, bg="bisque2")
+            frame.place(relx = 0, rely = 0.2, relwidth = 1, relheight = 0.3)
+            scrollbar = Scrollbar(frame)
+            scrollbar.pack(side=RIGHT, fill=Y)
+            listbox = Listbox(frame, yscrollcommand=scrollbar.set,font='Arial 13 ',fg='#000', bg="bisque2")
+            listbox.place(relx = 0, rely = 0, relwidth = 0.97, relheight = 1)    
+            scrollbar.config(command=listbox.yview)
+
+            #================== HIỂN THỊ MÓN ĐÃ ĐẶT RA MÀN HÌNH PAYMENT ==================
+            count = 1   # biến đếm số món ăn đã đặt vào màn hình
+            for i in range(len(order_list)):
+                if order_list[i] == '0':         # nếu order_list[i] = 0 thì không hiển thị món ăn này
+                    continue
+                price = str(format(int(food_price[i]), ',d'))       # chuyển đổi giá trị thành chuỗi với dấu phẩy thập phân (5000 -> 5,000)
+                temp_total = str(format(int(order_list[i]) * int(food_price[i]), ',d'))
+
+                listbox.insert(END, str(count) + '.' + ' ' + food_name[i] + ':    ' + order_list[i] + ' x ' + price + " = " + temp_total)
+                count += 1
+
+            #================== tạo button thanh toán và hàm thanh toán ==================
+            Label(pay, text="Tổng tiền:",fg='#e60000',bg="bisque2",font='verdana 14 ').place(relx = 0.1, rely = 0.5)
+            #================== hiển thị tổng tiền với đơn vị vnđ ==================
+            Label(pay, text=str(format(total, ',d')) + " VNĐ",fg='#e60000',bg="bisque2",font='verdana 14 bold').place(relx = 0.3, rely = 0.5)
+            Button(pay, text="Tiền mặt",bg="#20639b",fg='floral white',height= "1",width="15", activeforeground = "black", activebackground = "blue", command = pay_cash).place(relx = 0.2, rely = 0.85)
+            Button(pay, text="Thẻ",bg="#20639b",fg='floral white',height= "1",width="15", activeforeground = "black", activebackground = "blue", command=pay_card).place(relx = 0.4, rely = 0.85)
+            Button(pay, text="Hủy",bg="#20639b",fg='floral white',height= "1",width="15", activeforeground = "black", activebackground = "blue", command= cancel_order).place(relx = 0.6, rely = 0.85)
+            Label(pay, text="Thank you for your order",fg='#20639b',bg="bisque2",font='verdana 12 ').place(relx = 0.35, rely = 0.95)
+
+        #================== Button ORDER ==================
+        b = Button(top_order_food, text="ORDER",bg="#20639b",fg='floral white',font='Arial 13 bold',height= "2", width="20", command=print_all_entries)
+        b.place(relx = 0.32, rely = 0.9)
+
+        top_order_food.mainloop()
+
+    #================== CỬA SỔ ORDER FOOD ==================
+    top_connect.destroy()       #xóa cái box screen_connect
+    global table_number     
+    top_homepage = tk.Tk()         #tạo box mới (homepage)
+    title = "HOME - TABLE " + str(table_number)
+    top_homepage.title(title)
+    top_homepage.geometry("300x300")
+    top_homepage.configure(bg="bisque2")
     
+    button_order = Button (top_homepage,text="Order food",bg="#20639b",fg='floral white',height= "2", width="25", activeforeground = "black", activebackground = "blue", command= screen_order_food)
+    button_order.place(relx=0.2,rely=0.4)
+        
+    top_homepage.mainloop()
     
 
 
-# ===== Khi người dùng nhấn nút [X] thì đóng cửa sổ ngắt kết nối đến server =====
-def on_closing():
-    client.send("quit".encode(FORMAT))
-    client.close()
-    top.destroy()
-
-
-# ===== Xây dựng GUI cho LOGIN =====
-top = Tk()
-top.title("Client")
-top.geometry("300x200")
-top.configure(bg="bisque2")
-
-Label(top, text="Username", fg='#20639b', bg="bisque2",
-      font='verdana 10 ').place(x=20, y=40)
-Label(top, text="Bank account", fg='#20639b',
-      bg="bisque2", font='verdana 10 ').place(x=20, y=80)
-username = tkinter.StringVar()
-bank_acc = tkinter.StringVar()
-e1 = Entry(top, width=25, textvariable=username).place(x=120, y=40)
-e2 = Entry(top, width=25, textvariable=bank_acc).place(x=120, y=80)
-
-button_login = Button(top, text="Sign in", bg="#20639b", fg='floral white', height="1",
-                      width="15", activeforeground="black", activebackground="blue", command=client_login)
-button_login.place(x=100, y=120)
-button_logup = Button(top, text="Sign up", bg="#20639b", fg='floral white', height="1",
-                      width="15", activeforeground="black", activebackground="blue", command=client_logup)
-button_logup.place(x=100, y=160)
-
-top.protocol("WM_DELETE_WINDOW", on_closing)
-
-# ================================
-
-# hostip = input("Please input ip address: ")
-HOST = "127.0.0.1"
-SERVER_PORT = 65432
-FORMAT = "utf8"
-
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((HOST, SERVER_PORT))
-top.mainloop()
+HOST = "127.0.0.1" 
+SERVER_PORT = 8030
+ 
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # tạo socket
+client.connect( (HOST, SERVER_PORT) )
+screen_connect()

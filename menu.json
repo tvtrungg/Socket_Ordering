@@ -1,0 +1,108 @@
+[
+    {
+        "Name": "Bánh mì",
+        "Number": 1,
+        "Price": "20000",
+        "Note": "Bánh mì pate chả lụa",
+        "Image": "./img/0.png"
+    },
+    {
+        "Name": "Bún bò",
+        "Number": 2,
+        "Price": "30000",
+        "Note": "Bún bò Huế thơm ngon",
+        "Image": "./img/1.png"
+    },
+    {
+        "Name": "Bánh canh cua",
+        "Number": 3,
+        "Price": "30000",
+        "Note": "Bánh canh cua đồng",
+        "Image": "./img/2.png"
+    },
+    {
+        "Name": "Cơm sườn",
+        "Number": 4,
+        "Price": "25000",
+        "Note": "Cơm sườn bì chả",
+        "Image": "./img/3.png"
+    },
+    {
+        "Name": "Cơm gà",
+        "Number": 5,
+        "Price": "27000",
+        "Note": "Cơm gà xối mỡ",
+        "Image": "./img/4.png"
+    },
+    {
+        "Name": "Mì cay",
+        "Number": 6,
+        "Price": "45000",
+        "Note": "Mì cay 7 cấp độ",
+        "Image": "./img/5.png"
+    },
+    {
+        "Name": "Nui xào",
+        "Number": 7,
+        "Price": "28000",
+        "Note": "Nui xào bò",
+        "Image": "./img/6.png"
+    },
+    {
+        "Name": "Sâm bổ lượng",
+        "Number": 8,
+        "Price": "20000",
+        "Note": "Sâm giải khát",
+        "Image": "./img/7.png"
+    },
+    {
+        "Name": "Chè thái",
+        "Number": 9,
+        "Price": "27000",
+        "Note": "Chè thập cẩm thơm ngon",
+        "Image": "./img/8.png"
+    },
+    {
+        "Name": "Cafe",
+        "Number": 10,
+        "Price": "20000",
+        "Note": "Cafe đen đá/nóng",
+        "Image": "./img/9.png"
+    },
+    {
+        "Name": "Capuchino",
+        "Number": 11,
+        "Price": "35000",
+        "Note": "Cafe thượng hạng",
+        "Image": "./img/10.png"
+    },
+    {
+        "Name": "Nước cam",
+        "Number": 12,
+        "Price": "18000",
+        "Note": "Cam ép thơm ngon",
+        "Image": "./img/11.png"
+    },
+    {
+        "Name": "Trà chanh",
+        "Number": 13,
+        "Price": "15000",
+        "Note": "Trà chanh chém gió",
+        "Image": "./img/12.png"
+    },
+    {
+        "Name": "Trà sữa",
+        "Number": 14,
+        "Price": "22000",
+        "Note": "Trà sữa trân châu",
+        "Image": "./img/13.png"
+    },
+    {
+        "Name": "Nước ngọt",
+        "Number": 15,
+        "Price": "12000",
+        "Note": "Nước ngọt có gas đủ loại",
+        "Image": "./img/14.png"
+    }
+
+]
