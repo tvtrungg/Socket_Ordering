@@ -17,13 +17,13 @@ DATE = now.strftime("%y_%m_%d")
 FORMAT = "utf8"  # Định dạng chuỗi gửi đến client (tiếng việt)
 
 countFood = 0  # Số lượng món ăn có trong menu
-Food_Name = []
-Food_Price = []
+Food_Name = []  # Mảng tên các món ăn
+Food_Price = [] # Mảng giá của các món ăn
 
 # ====== Chấp nhận kết nối các client ========
 def accept_client():
     while True:
-        conn, addr = s.accept()
+        conn, addr = s.accept() #accept(): Phương thức này chấp nhận một cách thụ động kết nối TCP Client, đợi cho tới khi kết nối tới.
         print("client address:", addr, "đã kết nối")
         try:
             # Tạo luồng cho các client, mỗi luồng một client chạy riêng
@@ -104,9 +104,9 @@ def write_json(new_data, filename):     # Hàm ghi dữ liệu vào file json
 
 
 def order(conn, table_number):      # Hàm đặt bàn
-    list = []                   # Tạo list chứa thông tin món ăn đặt bàn từ client
+    list = []                   # Tạo list chứa thông tin món ăn đặt bàn từ client (client đưa cho server)
     # list_order chứa thông tin hoàn tất (bao gồm: tên món ăn, giá, số lượng)
-    list_order = []
+    list_order = []     # list server đưa lại client sau khi đã tính toán
     total_money = 0         # Tạo biến để lưu tổng tiền đơn hàng
     for i in range(countFood):
         msg = conn.recv(1024).decode(FORMAT)
@@ -138,7 +138,6 @@ def order(conn, table_number):      # Hàm đặt bàn
         file_write.close()                                                          # indent=5 để có khoảng trắng (thụt lề) trong file json -> hiển thị đẹp mắt hơn
 
     for i in list_order:
-        
         x = {'Name': i.getName(), 'Price': i.getPrice(), 'Count': i.getCount()}     # Lấy thông tin món ăn vào dict x
         write_json(x, file_name)
 
@@ -193,16 +192,26 @@ def checkTableNumber(conn, table_number):
 HOST = "127.0.0.1"
 SERVER_PORT = 8030
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       # Khai báo socket
 s.bind((HOST, SERVER_PORT))
 
 # Hàm main
 if __name__ == "__main__":
-    s.listen(5)
+    s.listen(5)     # 5 là số lượng kết nối tối đa
     print("SERVER RUNNING")
     print("server:", HOST, SERVER_PORT)
     print("Chờ kết nối từ các client...")
     ACCEPT_THREAD = Thread(target=accept_client)    # Tạo thread nhận kết nối từ client
-    ACCEPT_THREAD.start()
-    ACCEPT_THREAD.join()
+    ACCEPT_THREAD.start()                        # Bắt đầu thread nhận kết nối từ client
+    ACCEPT_THREAD.join()                # Chờ thread nhận kết nối từ client kết thúc
     s.close()
+
+#AF_INET        : cho biết đang yêu cầu một socket Internet Protocol(IP), cụ thể là IPv4
+#SOCK_STREAM    : chỉ loại kết nối TCP IP hoặc UDP . Chương trình nhóm em sẽ chạy trên một cổng kết nối TCP
+#bind()         : Phương thức này gắn kết địa chỉ (host,port) tới Socket
+#listen()       : Phương thức này cho phép một cái chờ kết nối từ một các client.
+#accept()       : Phương thức này chấp nhận một cách thụ động kết nối TCP Client, đợi cho tới khi kết nối tới.
+#recv()         : Phương thức này nhận TCP message.
+#send()         : Phương thức này gửi TCP message.
+#close()        : Phương thức này đóng kết nối.
+#gethostbyname(): Trả về hostname.

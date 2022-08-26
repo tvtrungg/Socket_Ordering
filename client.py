@@ -17,8 +17,8 @@ LARGE_FONT = ("verdana", 13,"bold")
 
 table_number = 0
 first_time = True
-top_connect = tk.Tk()
-order_list = []
+top_connect = tk.Tk()       #Giao diện ban đầu
+order_list = []     #Danh sách các món ăn người dùng đặt
 #==============================
 
 
@@ -33,10 +33,10 @@ def screen_connect():
     input_table_number = tkinter.StringVar()
     e1 = Entry(top_connect, width = 15, textvariable = input_table_number).place(x = 70, y = 80)
 
-    #===== Bấm Order thì hàm này chạy =====
+    #===== Bấm Table Order thì hàm này chạy =====
     def client_connect(event = None):     
         global table_number     
-        table_number = input_table_number.get()        #Cho phép người dùng nhập
+        table_number = input_table_number.get()        #Lấy số bàn từ người dùng nhập vào
         # nếu giá trị nhập vào khác số nguyên dương thì thông báo lỗi (sử dụng isdigit() trong string)
         if table_number.isdigit() == False:
             messagebox.showinfo("Error", "Vui lòng nhập số bàn")
@@ -48,7 +48,7 @@ def screen_connect():
         else:
             client.send(table_number.encode(FORMAT))    #Gửi cho server biết table_number
             time.sleep(0.01)
-            msg = client.recv(1024).decode(FORMAT)  #Nhận kiểm tra số bàn từ server
+            msg = client.recv(1024).decode(FORMAT)  #Nhận thông tin từ server trả về
             global first_time
             if msg == "first_time":
                 messagebox.showinfo('Message ','Connect first time')
@@ -76,14 +76,14 @@ def screen_homepage():
     def screen_order_food():
         top_homepage.destroy()       #xóa cái box screen_homepage
         msg = "menu"
-        client.send(msg.encode(FORMAT))
+        client.send(msg.encode(FORMAT))     # gửi thông điệp cần cái menu cho server
         msg = client.recv(1024).decode(FORMAT)
-        count = int(msg)
+        count = int(msg)        # đếm số lượng món ăn trong menu 
         global food_name
         global food_price
         global food_note
         global food_image
-        food_name = []
+        food_name = []      # mảng chứa tên tất cả các món ăn trong menu 
         food_price = []
         food_note = []
         food_image = []
@@ -99,7 +99,7 @@ def screen_homepage():
 
         entry = {}
         label = {}
-        
+        # ======================= Cửa sổ Menu =======================
         top_order_food = tk.Tk()
         top_order_food.title("Menu")
         top_order_food.state('zoomed')
@@ -110,7 +110,6 @@ def screen_homepage():
         Label(top_order_food, text = "NOTE",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=3, padx = 85, pady = 30)
         Label(top_order_food, text = "SỐ LƯỢNG",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=4, padx = 40, pady = 30)
         Label(top_order_food, text = "HÌNH ẢNH",fg='#20639b',font='verdana 15 bold ').grid(row=0, column=5, padx = 70, pady = 30)
-
         
         frame = Frame(top_order_food)
         frame.place(relx=0, rely=0.1, relwidth=0.9, relheight=0.7)
@@ -121,7 +120,7 @@ def screen_homepage():
         scrollbar.pack(side=RIGHT, fill=Y)
 
         canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.bind('<Configure>', lambda e: canvas.configure(
+        canvas.bind('<Configure>', lambda e: canvas.configure(  # khi resize thì tự động thay đổi kích thước
             scrollregion=canvas.bbox("all")))
 
         second_frame = Frame(frame)
@@ -133,7 +132,7 @@ def screen_homepage():
         g = 1
         stt = 1
         while (stt <= len(food_name)):
-            lbName = Label(second_frame, text=stt,font='verdana 12')
+            lbName = Label(second_frame, text=stt, font='verdana 12')
             lbName.grid(row=g, column=0, padx = 30)
             stt += 1
             g += 1
@@ -161,7 +160,7 @@ def screen_homepage():
             z += 1
 
         for Img in food_image:
-            photo = PhotoImage(file=Img)
+            photo = PhotoImage(file=Img) #PIL
             lbImage = Label(second_frame, image = photo, text=Img)
             lbImage.image = photo
             lbImage.grid(row=t, column=5, padx = 80)
@@ -323,4 +322,5 @@ SERVER_PORT = 8030
  
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # tạo socket
 client.connect( (HOST, SERVER_PORT) )
+
 screen_connect()
